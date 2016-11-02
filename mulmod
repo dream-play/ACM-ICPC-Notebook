@@ -1,4 +1,4 @@
-
+tested = 0
 // returns a * b % m where a, b, m can all be <= 10 ^ 18
 
 complexity O(1)
