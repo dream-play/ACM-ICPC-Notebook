@@ -1,0 +1,27 @@
+
+// returns a * b % m where a, b, m can all be <= 10 ^ 18
+
+complexity O(1)
+long long mul (long long a, long long b, long long m) {
+  long long q = (long long) ((long double) a * (long double) b / (long double) m);
+  long long r = a * b - q * m;
+  return (r + 5 * m)% m;
+}
+
+complexity O(log n) // reliable, algo just like powmod
+long long mulmod (long long a, long long b, long long MOD)
+{
+    if (b == 0) return 0;
+    long long res = mulmod (a, b >> 1, MOD);
+    res + = res;
+    res% = MOD;
+    return (b & 1)? (A + res)% MOD: res;
+}
+long long powmod (long long a, long long b, long long MOD)
+{
+    if (b == 0) return 1;
+    long long res = powmod (a, b >> 1, MOD);
+    res * = res;
+    res% = MOD;
+    return (b & 1)? (A * res)% MOD: res;
+}
