@@ -24,7 +24,7 @@ typedef long long llint;
 
 namespace FFT {
   const int MAX = 1 << 20;
-
+  const double PI = acos(-1);
   typedef llint value;
   typedef complex<double> comp;
 
@@ -61,7 +61,7 @@ namespace FFT {
     REP(i, len) a1[i] = a[i];
     REP(i, len) a2[i] = b[i];
 
-    REP(i, N) omega[i] = polar(1.0, 2*M_PI/N*i);
+    REP(i, N) omega[i] = polar(1.0, 2*PI/N*i);
     fft(a1, z1, N);
     fft(a2, z2, N);
 
