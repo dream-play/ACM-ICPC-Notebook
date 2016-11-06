@@ -13,10 +13,10 @@
 // - big integer multiplication
 // - convolutions in dynamic programming
 //
-// Time complexity: O(N log N), where N is the length of arrays, making fft() INLINE seen to speed up a lot on CF but not as much on CC.
+// Time complexity: O(N log N), where N is the length of arrays, making fft() INLINE may speed up but not much ~ 30 ms.
 // Constants to configure:
 // - MAX must be at least 2^ceil(log2(2 * len))
-// - Safe to set MAX = 4 * LEN
+// - Safe to set MAX = 2 * MAXLEN + 1000, sizes of a, b, c to 2 * MAXLEN + 10
 
 #define FOR(i, a, b) for (int i = (a); i < (b); ++i)
 #define REP(i, n) FOR(i, 0, n)
