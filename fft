@@ -5,6 +5,7 @@
 //   REP(i, 2*len) tmp[i] = 0
 //   REP(i, len) REP(j, len) tmp[i+j] += a[i] * b[j];
 //   REP(i, 2*len) c[i] = tmp[i];
+// Therefore Note that mult(a,a,a) will store square of a in a.
 //
 // There is also a variant with modular arithmetic: mult_mod. MOD values are special values i.e. uncommon mod value indicates FFT
 //
@@ -12,8 +13,7 @@
 // - big integer multiplication
 // - convolutions in dynamic programming
 //
-// Time complexity: O(N log N), where N is the length of arrays, making fft() INLINE seen to speed up a lot on CF but not at much on CC.
-//
+// Time complexity: O(N log N), where N is the length of arrays, making fft() INLINE seen to speed up a lot on CF but not as much on CC.
 // Constants to configure:
 // - MAX must be at least 2^ceil(log2(2 * len))
 // - Safe to set MAX = 4 * LEN
