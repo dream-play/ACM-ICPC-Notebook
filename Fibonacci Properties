@@ -1,1 +1,16 @@
-Fn = Fn-1 + Fn-2
+Fn = Fn-1 + Fn-2, F1 = 1, F0 = 0
+
+Lucas' Theorem:
+Fm gcd Fn = F(m gcd n)
+Shifting Property:
+Fm+n = Fm · Fn+1 + Fm-1 · Fn 
+Thus Fnk is always a multiple of Fn. Also if Fm is a multiple of Fn then m is a multile of n. 
+Cassini's Formula:
+Fn+1 · Fn-1 - (Fn)^2 = (-1) ^ n
+Some interesting F sum identities:
+F0 + F1 + F2 + F3 + ... + Fn = Fn+2 - 1
+1F1 + 2F2 + 3F3 + ... + nFn = nFn+2 - Fn+3 + 2
+Sequence Modulo
+Fibonacci sequence with some mod is always periodic with preperiod = 0, that is, new period begins with F1 = 1
+Fibonnaci Number system
+Every positive number can be represented as a sum of non-adjacent fibonacci numbers, in a unique manner.
