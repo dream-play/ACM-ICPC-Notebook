@@ -1,0 +1,187 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 105;
+const double EPS = 1e-15;
+
+int n, m, A[maxn], D[maxn];
+int src, sink;
+
+struct Edge {
+  int from, to, index;
+  double cap, flow;
+  Edge(int from, int to, double cap, double flow, int index) :
+    from(from), to(to), cap(cap), flow(flow), index(index) {}
+};
+
+struct PushRelabel {
+  int N;
+  vector<vector<Edge> > G;
+  vector<double> excess;
+  vector<int> active, count, dist;
+  queue<int> Q;
+  void clear() {
+  	N = 0;
+  	G.clear();
+  	excess.clear();
+  	active.clear();
+  	count.clear();
+  	dist.clear();
+  	while (!Q.empty()) {
+  		Q.pop();
+  	}
+  }
+
+  PushRelabel(int N) : N(N), G(N), excess(N), dist(N), active(N), count(2*N) {}
+
+  void AddEdge(int from, int to, double cap) {
+    G[from].push_back(Edge(from, to, cap, 0, G[to].size()));
+    if (from == to) G[from].back().index++;
+    G[to].push_back(Edge(to, from, 0, 0, G[from].size() - 1));
+  }
+
+  void Enqueue(int v) { 
+    if (!active[v] && excess[v] > 0) { active[v] = true; Q.push(v); } 
+  }
+
+  void Push(Edge &e) {
+    double amt = (min(excess[e.from], (e.cap - e.flow)));
+    if (dist[e.from] <= dist[e.to] || amt < EPS) return;
+    e.flow += amt;
+    G[e.to][e.index].flow -= amt;
+    excess[e.to] += amt;    
+    excess[e.from] -= amt;
+    Enqueue(e.to);
+  }
+  
+  void Gap(int k) {
+    for (int v = 0; v < N; v++) {
+      if (dist[v] < k) continue;
+      count[dist[v]]--;
+      dist[v] = max(dist[v], N+1);
+      count[dist[v]]++;
+      Enqueue(v);
+    }
+  }
+
+  void Relabel(int v) {
+    count[dist[v]]--;
+    dist[v] = 2*N;
+    for (int i = 0; i < G[v].size(); i++) 
+      if (G[v][i].cap - G[v][i].flow > 0)
+	dist[v] = min(dist[v], dist[G[v][i].to] + 1);
+    count[dist[v]]++;
+    Enqueue(v);
+  }
+
+  void Discharge(int v) {
+    for (int i = 0; excess[v] > 0 && i < G[v].size(); i++) Push(G[v][i]);
+    if (excess[v] > 0) {
+      if (count[dist[v]] == 1) 
+	Gap(dist[v]); 
+      else
+	Relabel(v);
+    }
+  }
+
+  double GetMaxFlow(int s, int t) {
+    count[0] = N-1;
+    count[N] = 1;
+    dist[s] = N;
+    active[s] = active[t] = true;
+    for (int i = 0; i < G[s].size(); i++) {
+      excess[s] += G[s][i].cap;
+      Push(G[s][i]);
+    }
+    
+    while (!Q.empty()) {
+      int v = Q.front();
+      Q.pop();
+      active[v] = false;
+      Discharge(v);
+    }
+    
+    double totflow = 0;
+    for (int i = 0; i < G[s].size(); i++) totflow += G[s][i].flow;
+    return totflow;
+  }
+};
+
+PushRelabel buildGraph(double g) {
+	PushRelabel PR(n + 2);
+	for (int i = 1; i <= n; i++) {
+		PR.AddEdge(src, i, m);
+		PR.AddEdge(i, sink, m + g*2.0 - D[i]);
+	}
+	for (int i = 1; i <= n; i++) {
+		for (int j = i + 1; j <= n; j++) {
+			if (A[i] > A[j]) {
+				PR.AddEdge(i, j, 1.0);
+				PR.AddEdge(j, i, 1.0);
+			}
+		}
+	}
+	return PR;
+}
+
+double maximumDensitySubgraph() {
+	src = 0;
+	sink = n + 1;
+	double lo = 0, hi = n;
+	for (int i = 0; i < 50; i++) {
+		double g = (lo + hi) / 2.0;
+		PushRelabel PR = buildGraph(g);
+		double flow = PR.GetMaxFlow(src, sink);
+		double maxFlow = m * n;
+		double parameter = (maxFlow - flow) / 2.0;	
+		if (parameter < EPS)
+			hi = g;
+		else
+			lo = g;
+		PR.clear();
+	}
+	return lo;
+}
+
+int main() {
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int t, cn = 1;
+	scanf("%d", &t);
+	while (t--) {
+		scanf("%d", &n);
+		for (int i = 1; i <= n; i++) {
+			scanf("%d", &A[i]);
+			D[i] = 0;
+		}
+		m = 0;
+		for (int i = 1; i <= n; i++) {
+			for (int j = i + 1; j <= n; j++) {
+				if (A[i] > A[j]) {
+					++m;
+					++D[i];
+					++D[j];
+				}
+			}
+		}
+		double mds = maximumDensitySubgraph();
+		printf("Case #%d: %.10lf\n", cn++, mds);
+	}
+	
+	return 0;
+}
