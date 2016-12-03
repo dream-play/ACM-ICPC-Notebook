@@ -1,0 +1,79 @@
+//Max-flow in O(n*m^2)
+//Edmond-karp
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 55;
+
+int graph[maxn][maxn], adj[maxn][maxn];
+int visited[maxn], parent[maxn], dist[maxn], n, k;
+int source, sink;
+
+bool bfs()
+{
+	int i;
+	for(i=source; i<=sink; i++)
+		visited[i] = 0;
+	queue<int> q;
+	q.push(source);
+	visited[source] = 1;
+	while(!q.empty()){
+		int cur = q.front();
+		q.pop();
+		for(i=source; i<=sink; i++){
+			if(!visited[i] && graph[cur][i]>0){
+				parent[i] = cur;
+				visited[i] = 1;
+				q.push(i);
+			}
+		}
+	}
+	return visited[sink];
+}
+
+int solve()
+{	
+	int i, j;
+	int minval, flow = 0;
+	for(i=source; i<=sink; i++){
+		for(j=source; j<=sink; j++)
+			graph[i][j] = adj[i][j];
+	}
+	while(bfs()){
+		int cur = sink;
+		minval = mod;
+		while(cur!=source){
+			minval = min(minval, graph[parent[cur]][cur]);
+			cur = parent[cur];
+		}
+		flow += minval;
+		cur = sink;
+		while(cur!=source){
+			graph[parent[cur]][cur] -= minval;
+			graph[cur][parent[cur]] += minval;
+			cur = parent[cur];
+		}
+	}
+	return flow;
+}
+
+int main()
+{
+	
+	return 0;
+}
