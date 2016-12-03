@@ -1,0 +1,130 @@
+#include <bits/stdc++.h>
+ 
+using namespace std;
+ 
+#define ll long long
+#define gc getchar
+#define REP(i, a, b) for(int i = a; i < b; i++)
+ 
+const ll MOD = 1000000007;
+const int MAXN = 100005;
+const int ln = 18;
+ 
+int n, a, b, temp_suf[MAXN], logTable[MAXN];
+int lcp[MAXN], r[MAXN];
+int suf[MAXN], ra[MAXN], c[MAXN], rmq[ln][MAXN];
+char A[MAXN], B[MAXN];
+ 
+void count_sort(int k, int n, int* suf) {
+	int i, sum, maxi = max(300, n);
+	memset(c, 0, maxi * (sizeof c[0]));
+	REP(i, 0, n) c[i + k < n ? ra[i + k] : 0]++;
+	for (i = sum = 0; i < maxi; i++) {
+		int t = c[i];
+		c[i] = sum;
+		sum += t;
+	}
+	REP(i, 0, n) temp_suf[c[suf[i] + k < n ? ra[suf[i] + k] : 0]++] = suf[i];
+	REP(i, 0, n) suf[i] = temp_suf[i];
+}
+ 
+void suf_array() {
+	int k, r;
+	REP(i, 0, n) {
+		ra[i] = A[i];
+		suf[i] = i;
+	}
+	for (k = 1; k < n; k <<= 1) {
+		count_sort(k, n, suf);
+		count_sort(0, n, suf);
+		temp_suf[suf[0]] = r = 0;
+		REP(i, 1, n) temp_suf[suf[i]] = (ra[suf[i]] == ra[suf[i - 1]] && ra[suf[i] + k] == ra[suf[i - 1] + k] ? r : ++r);
+		REP(i, 0, n) ra[i] = temp_suf[i];
+	}
+}
+
+void count_lcp() {
+    int l = 0;
+    REP(i, 0, n) r[suf[i]] = i;
+    REP(i, 0, n) {
+        if(r[i] == n-1) continue;
+        int m = suf[r[i]+1];
+        while(l+i < n && l+m < n && A[l + i] == A[l + m]) l++;
+        lcp[r[i]] = l;
+        l = max(0, l-1);
+    }
+}
+
+void buildTable() {
+	logTable[1] = 0;
+	for (int i = 2; i < MAXN; i++) {
+		logTable[i] = logTable[i / 2] + 1;
+	}
+	for (int i = 0; i < n; i++) {
+		rmq[0][i] = lcp[i];
+	}
+
+	for (int i = 1; i < ln; i++) {
+		for (int j = 0; j < n; j++) {
+			rmq[i][j] = min(rmq[i - 1][j], rmq[i - 1][min(j + (1 << (i - 1)), n - 1)]);
+		}
+	}
+}
+
+int findMin(int x, int y) {
+	int l = logTable[y - x];
+	return min(rmq[l][x], rmq[l][y - (1 << l) + 1]);
+
+}
+ 
+int main() {
+	int T;
+	scanf("%d", &T);
+	while(T--) {
+
+		scanf("%d %d %s %s", &a, &b, A, B);
+		n = a;
+		A[n++] = '$';
+		// cout << "A = " << A << " B = " << B << " n = " << n << "\n";
+		strcat(A, B);
+		n = strlen(A);
+		A[n++] = '@';
+		A[n] = 0;
+		// cout << " A + B " << A << "\n";
+        suf_array();
+        count_lcp();
+		// for (int i = 0; i < n; i++)
+			// cout << suf[i] << " " << lcp[i] << endl;
+		buildTable();
+		int pa = -1, pb = -1;
+		ll ans = 0;
+		for (int i = 2; i < n; i++) {
+			if (suf[i] > a) {
+				if (pa != -1) {
+					int x = 0;
+					if (pb != -1) {
+						x = findMin(pb, i - 1);
+					}
+					int y = findMin(pa, i - 1);
+					ans += max(0, y - x);
+				}
+				pb = i;
+			}
+			else {
+				if (pb != -1) {
+					int x = 0;
+					if (pa != -1) {
+						x = findMin(pa, i - 1);
+					}
+					int y = findMin(pb, i - 1);
+					ans += max(0, y - x);
+				}
+				pa = i;
+			}
+		}
+		printf("%lld\n", ans);
+		for (int i = 0; i < n; i++) {
+			A[i] = '\0';
+		}
+	}
+} 
