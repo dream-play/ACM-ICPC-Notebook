@@ -1,0 +1,72 @@
+//Divide and Conquer
+//http://codeforces.com/problemset/problem/673/E
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+double t[maxn], pref[maxn], invpref[maxn], aux[maxn], auxpref[maxn];
+double dp[55][maxn];
+int n, k;
+
+double cost(int x, int y)
+{
+	double ret = auxpref[y] - auxpref[x-1] - (pref[x-1]*(invpref[y]-invpref[x-1]));
+	return ret;
+}
+
+void solve(int curk, int cx, int cy, int lx, int ly)
+{
+	if(cx>cy || lx==-1 || ly==-1)
+		return;
+	int i, opt_idx = -1, mid;
+	double mincost, curcost;
+	mid = (cx+cy)>>1;
+	mincost = 1e15;
+	for(i=lx; i<=min(ly, mid); i++){
+		curcost = dp[curk-1][i-1] + cost(i, mid);
+		if(curcost < mincost){
+			mincost = curcost;
+			opt_idx = i;
+		}
+	}
+	dp[curk][mid] = mincost;
+	solve(curk, cx, mid-1, lx, opt_idx);
+	solve(curk, mid+1, cy, opt_idx, ly);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	scanf("%d%d", &n, &k);
+	for(i=1; i<=n; i++){
+		scanf("%lf", &t[i]);
+		pref[i] = pref[i-1] + t[i];
+		invpref[i] = invpref[i-1] + (1.0/t[i]);
+		aux[i] = pref[i]/t[i];
+		auxpref[i] = auxpref[i-1] + aux[i];
+	}
+	for(i=1; i<=n; i++)
+		dp[1][i] = cost(1, i);
+	for(i=2; i<=k; i++)
+		solve(i, 1, n, 1, n);
+	printf("%.12lf\n", dp[k][n]);
+	return 0;
+}
