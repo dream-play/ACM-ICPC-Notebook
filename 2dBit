@@ -1,0 +1,130 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+vector <vector <ll>> tree[4], mat, sufr, sufc, dp;
+int n, m;
+
+void update(int x, int y, int val, int i) {
+    int p;
+    while (x <= n) {
+        p = y;
+        while (p <= m) {
+            tree[i][x][p] += val;
+            p += (p & -p);
+        }
+        x += (x & -x);
+    }
+}
+
+ll query(int x, int y, int i) {
+    ll ans = 0;
+    int p;
+    while (x > 0) {
+        p = y;
+        while (p > 0) {
+            ans += tree[i][x][p];
+            p -= (p & -p);
+        }
+        x -= (x & -x);
+    }
+    return ans;
+}
+
+int solve(int x, int y) {
+	if (x > n || y > m) {
+		return 0;
+	}
+	if (dp[x][y] != -1) {
+		return dp[x][y];
+	}
+	int ret = min(solve(x + 1, y), solve(x, y + 1)) + 1;
+	if (sufc[x][y] == 0) {
+		ret = min(ret, solve(x, y + 1));
+	}
+	if (sufr[x][y] == 0) {
+		ret = min(ret, solve(x + 1, y));
+	}
+	// cout << x << " " << y << " r " << ret << " " << sufr[x][y] << " " << sufc[x][y] << "\n";
+	if (sufr[x][y] == 0 && sufc[x][y] == 0) {
+		ret = min(ret, solve(x + 1, y + 1));
+	}
+	// cout << x << " " << y << " " << ret << "\n";
+	return dp[x][y] = ret;
+}
+
+int main() {
+	int t, q, r;
+	scanf("%d", &t);
+	while (t--) {
+		scanf ("%d %d %d %d", &n, &m, &q, &r);
+		for (int i = 0; i < 4; i++) {
+			tree[i].assign(n + 1, vector <ll>(m + 1, 0));
+		}
+		mat.assign(n + 1, vector <ll>(m + 1, 0));
+		sufr.assign(n + 1, vector <ll>(m + 1, 0));
+		sufc.assign(n + 1, vector <ll>(m + 1, 0));
+		dp.assign(n + 1, vector <ll>(m + 1, -1));
+		ll x1, y1, x2, y2;
+		while (q--) {
+			scanf("%lld %lld %lld %lld",&x1, &y1, &x2, &y2);
+			x1 += 1;
+			y1 += 1;
+			x2 += 1;
+			y2 += 1;
+			int k = 1;
+	        update(x1, y1, k, 0);
+	        update(x1,y2+1,-k,0);
+	        update(x2+1,y1,-k,0);
+	        update(x2+1,y2+1,k,0);
+	        
+	        update(x1,y1,k*(1-y1),1);
+	        update(x1,y2+1,k*y2,1);
+	        update(x2+1,y1,k*(y1-1),1);
+	        update(x2+1,y2+1,-y2*k,1);
+	        
+	        update(x1,y1,k*(1-x1),2);
+	        update(x1,y2+1,k*(x1-1),2);
+	        update(x2+1,y1,k*x2,2);
+	        update(x2+1,y2+1,-x2*k,2);
+	        
+	        update(x1,y1,(x1-1)*(y1-1)*k,3);
+	        update(x1,y2+1,-y2*(x1-1)*k,3);
+	        update(x2+1,y1,-x2*(y1-1)*k,3);
+	        update(x2+1,y2+1,x2*y2*k,3);
+		}	
+		for (int i = 1; i <= n; i++) {
+			for (int j = 1; j <= m; j++) {
+				x1 = x2 = i;
+				y1 = y2 = j;
+				ll val1 = query(x2,y2,0)*x2*y2+query(x2,y2,1)*x2+query(x2,y2,2)*y2+query(x2,y2,3);
+	        	ll val2 = query(x2,y1-1,0)*x2*(y1-1)+query(x2,y1-1,1)*x2+query(x2,y1-1,2)*(y1-1)+query(x2,y1-1,3);
+	        	ll val3 = query(x1-1,y2,0)*(x1-1)*y2+query(x1-1,y2,1)*(x1-1)+query(x1-1,y2,2)*y2+query(x1-1,y2,3);
+	       		ll val4 = query(x1-1,y1-1,0)*(x1-1)*(y1-1)+query(x1-1,y1-1,1)*(x1-1)+query(x1-1,y1-1,2)*(y1-1)+query(x1-1,y1-1,3);
+	        
+	        	ll ans = val1 - val2 - val3 + val4;
+	        	if (ans >= r) {
+	        		mat[i][j] = 1;
+	        	}
+			}
+		}
+		for (int i = 1; i <= n; i++) {
+			sufr[i][m] = mat[i][m];
+			for (int j = m - 1; j >= 1; j--) {
+				sufr[i][j] = sufr[i][j + 1] + mat[i][j];
+			}
+		}
+		for (int i = 1; i <= m; i++) {
+			sufc[n][i] = mat[n][i];
+			for (int j = n - 1; j >= 1; j--) {
+				sufc[j][i] = sufc[j + 1][i] + mat[j][i];
+			}
+		}
+		int ans = solve(1, 1);
+		printf("%d\n", ans);
+	}
+	return 0;
+}
+ 
