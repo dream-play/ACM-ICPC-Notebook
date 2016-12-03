@@ -1,0 +1,176 @@
+//tested count = 0
+
+//Link : http://codeforces.com/problemset/gymProblem/100488/L
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+struct node{
+	char val;
+	int priority, sz, rev;
+	node* l;
+	node* r;
+	node(char x){
+		this->val = x;
+		this->priority = rand();
+		this->l = this->r = NULL;
+		this->sz = 1;
+		this->rev = 0;
+	}
+};
+
+node* treap = NULL;
+char str[maxn];
+int n, pl, pr, len;
+
+void update_sz(node* T)
+{
+	if(T)
+		T->sz = ((T->l)?T->l->sz:0) + ((T->r)?T->r->sz:0) + 1; 
+}
+
+void propagate_down(node* &T)
+{
+	if(T && T->rev){
+		T->rev = 0;
+		swap(T->l, T->r);
+		if(T->l)
+			T->l->rev ^= 1;
+		if(T->r)
+			T->r->rev ^= 1;
+	}
+}
+
+// x will contain <= k elements after the split
+
+void split(node* T, node* &x, node* &y, int k)
+{
+	propagate_down(T);
+	if(!T){
+		x = y = NULL;
+		return;
+	}
+	int l_sz = 1 + ((T->l)?T->l->sz:0);
+	if(l_sz <= k){
+		split(T->r, T->r, y, k-l_sz);
+		x = T;
+	}
+	else{
+		split(T->l, x, T->l, k);
+		y = T;
+	}
+	update_sz(x);
+	update_sz(y);
+}
+
+void merge(node* &T, node* x, node* y)
+{
+	propagate_down(x);
+	propagate_down(y);
+	if(!x || !y){
+		T = x?x:y;
+		return;
+	}
+	if(x->priority > y->priority){
+		merge(x->r, x->r, y);
+		T = x;
+	}
+	else{
+		merge(y->l, x, y->l);
+		T = y;
+	}
+	update_sz(T);
+}
+
+void inorder(node* T)
+{
+	if(!T)
+		return;
+	inorder(T->l);
+	cout << T->val;
+	inorder(T->r);
+}
+
+void delete_treap(node* T)
+{
+	if(T){
+		if(T->l)
+			delete_treap(T->l);
+		if(T->r)
+			delete_treap(T->r);
+		delete T;
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);	
+	
+	int i, q, j;
+	char type, X, Y;
+	scanf("%d%d%d%s", &n, &pl, &pr, str);
+	len = strlen(str);
+	for(i=0; i<len; i++){
+		node* temp = new node(str[i]);
+		merge(treap, treap, temp);
+	}
+	scanf("%d", &q);
+	pl--, pr--;
+	node *L, *R, *MID, *TEMP;
+	while(q--){
+		scanf(" %c", &type);
+		if(type == 'S'){
+			scanf(" %c %c", &X, &Y);
+			if(X=='L'){
+				if(Y=='L')
+					pl--;
+				else
+					pl++;
+			}
+			else{
+				if(Y=='L')
+					pr--;
+				else
+					pr++;
+			}
+		}
+		else if(type == 'R'){
+			split(treap, L, TEMP, pl);
+			split(TEMP, MID, R, pr-pl+1);
+			(MID->rev) ^= 1;
+			merge(TEMP, MID, R);
+			merge(treap, L, TEMP);
+		}
+		else{
+			scanf(" %c", &X);
+			if(X=='L')
+				j = pl;
+			else
+				j = pr;
+			split(treap, L, TEMP, j);
+			split(TEMP, MID, R, 1);
+			printf("%c", MID->val);
+			merge(TEMP, MID, R);
+			merge(treap, L, TEMP);
+		}
+	}
+	return 0;
+}
