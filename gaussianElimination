@@ -1,0 +1,131 @@
+//Link : https://reponroy.wordpress.com/2016/01/10/gaussian-elimination/
+//Problem : http://codeforces.com/gym/100199/attachments/download/1686/20022003-winter-petrozavodsk-camp-andrew-stankevich-contest-1-en.pdf
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<double> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1010;
+const double eps = 1e-11;
+
+matrix A, C, AC;
+vector<double> pf[maxn]; 
+int t, m, arr[maxn], isprime[maxn], prime[maxn], taken[maxn];
+
+void sieve()
+{
+    int i, j, k = 0;
+    for(i=2; i<maxn; i++){
+        if(!isprime[i]){
+            prime[k++] = i;
+            if(k>t)
+                return;
+            for(j=i*i; j<maxn; j+=i)
+                isprime[j] = 1;
+        }
+    }
+}
+
+int Gauss(matrix &a)
+{
+    int n = a.size(), m= a[0].size();
+    int r = 0;
+    for(int c = 0; c < m  && r < n ; c ++ ) {
+        int j = r;
+        for(int i = r+1; i < n; i ++ ) {
+            if(fabs(a[i][c]) > fabs(a[j][c])) j= i;
+        }
+        if(fabs(a[j][c]) < eps) continue;
+        swap(a[j],a[r]);
+        double s = 1./a[r][c];
+        for(int i = 0; i < m ; i ++ ) a[r][i] *= s;
+        for(int i=0;i < n ;i ++) if(i!=r) {
+            double t = a[i][c];
+            for(int j = 0; j < m ; j ++ ) a[i][j] -= t * a[r][j];
+        }
+        r++;
+    }
+    return r;
+}
+
+string ans;
+
+void mul_by_2()
+{
+    int i, c = 0, n = ans.size();
+    string temp = "";
+    for(i=n-1; i>=0; i--){
+        int x = c + (ans[i]-'0')*2;
+        temp += (char)('0' + (x%10));
+        c = x/10;
+    }
+    while(c){
+        temp += (char)('0' + (c%10));
+        c/=10;
+    }
+    reverse(all(temp));
+    ans = temp;
+}
+
+void sub_1()
+{
+    int k = ans.size();
+    string temp = "";
+    int i, j, c = 0;
+    for(i=k-1; i>=0; i--){
+        if(ans[i]-'0' >= 1){
+            temp += (char)('0'+(ans[i]-'0'-1));
+            for(j=i-1; j>=0; j--)
+                temp += ans[j];
+            break;
+        }
+        else
+            temp += '9';
+    }   
+    reverse(all(temp));
+    ans = temp;   
+}
+
+int main()
+{
+    // freopen("rsa.in", "r", stdin);
+    // freopen("rsa.out", "w", stdout);
+    int i, j;
+    scanf("%d%d", &t, &m);
+    sieve();
+    A.resize(t, vector<double>(m));
+    for(i=0; i<m; i++){
+        scanf("%d", &arr[i]);
+        pf[i].resize(t);
+        for(j=0; j<t; j++){
+            pf[i][j] = 0;
+            while(!(arr[i]%prime[j])){
+                arr[i] /= prime[j];
+                pf[i][j]++;
+            }
+            pf[i][j] = (int)pf[i][j]%2;
+            A[j][i] = pf[i][j];
+        }
+    }
+    int free_var = m-Gauss(A);
+    ans = "1";
+    while(free_var--)
+        mul_by_2();
+    sub_1();
+    cout << ans << "\n";
+    return 0;
+}
