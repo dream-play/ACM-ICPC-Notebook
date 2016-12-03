@@ -1,0 +1,123 @@
+//https://www.quora.com/How-can-you-build-a-data-structure-on-an-array-that-returns-kth-order-statistics-on-subarrays-in-logarithmic-time
+//duplicates are counted, kind of like multiset
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n, q;
+pii arr[maxn], temp[maxn], sorted[maxn];
+int *st[maxn*5];
+
+int mult(int x, int y)
+{
+	ll temp = x;
+	temp = (temp*y)%n;
+	x = temp;
+	return x;
+}
+
+int* merge(int s, int e)
+{
+	int* num_left = (int*)(malloc(sizeof((e-s+1)*sizeof(int))));
+	int mid = (s+e)>>1;
+	int i, ls, rs, cnt;
+	ls = s;
+	rs = mid+1;
+	i = cnt = 0;
+	while(ls<=mid && rs<=e){
+		if(arr[ls].s<arr[rs].s){
+			num_left[i] = ++cnt;
+			temp[i++] = arr[ls++];
+		}
+		else{
+			num_left[i] = cnt;
+			temp[i++] = arr[rs++];
+		}
+	}
+	while(ls<=mid){
+		num_left[i] = ++cnt;
+		temp[i++] = arr[ls++];
+	}
+	while(rs<=e){
+		num_left[i] = cnt;
+		temp[i++] = arr[rs++];
+	}
+	for(i=0; i<(e-s+1); i++)
+		arr[s+i] = temp[i];	
+	return num_left;
+}
+
+void init(int s, int e, int node)
+{
+	if(s==e)
+		return;
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	init(s, mid, lc);
+	init(mid+1, e, rc);
+	st[node] = merge(s, e);
+}
+
+int query(int s, int e, int l, int r, int k, int node)
+{
+	if(s==e)
+		return sorted[s].f;
+	int left_size = l>=0?st[node][l-1]:0;
+	int right_size = st[node][r];
+	int p = right_size-left_size;
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	if(p>=k)
+		query(s, mid, l+1, r, k, lc);
+	else
+		query(mid+1, e, l-left_size, r-right_size, k-p, rc);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int a, b, c, d, i, j, l, k, r, ans;
+	scanf("%d%d", &n, &q);
+	for(i=0; i<n; i++){
+		scanf("%d", &arr[i].f);
+		arr[i].s = i;
+	}
+	sort(arr, arr+n);
+	memcpy(sorted, arr, sizeof(arr));
+	init(0, n-1, 0);
+	ans = 0;	
+	while(q--){
+		scanf("%d%d%d%d%d", &a, &b, &c, &d, &k);
+		l = (mult(max(ans, 0), a) + b)%n + 1;
+		r = (mult(max(ans, 0), c) + d)%n + 1;
+		if(l>r)
+			swap(l, r);
+		if((r-l+1)<k)
+			ans = -1;
+		else
+			ans = query(0, n-1, l-1, r-1, k, 0);
+		printf("%d\n", ans);
+	}
+	return 0;
+}
