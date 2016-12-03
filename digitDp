@@ -1,0 +1,101 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+string temp;
+int m2[2525];
+ll dp[20][2525][50];
+vector<int> m1;
+
+int gcd(int a, int b)
+{
+	if(!b)
+		return a;
+	return gcd(b, a%b);
+}
+
+void precompute()
+{
+	int i;
+	for(i=1; i<=2520; i++){
+		if(!(2520%i)){
+			m2[i] = m1.size();
+			m1.pb(i);
+		}
+	}
+}
+
+ll compute(int lt, int rem, int lcm)
+{
+	if(!lt){
+		if(rem%m1[lcm]==0)
+			return 1;
+		return 0;
+	}
+	if(dp[lt][rem][lcm]!=-1)
+		return dp[lt][rem][lcm];
+	int i, j, nlcm;
+	ll ret = 0;
+	for(i=0; i<=9; i++){
+		nlcm = m1[lcm];
+		if(i>0)
+			nlcm = (nlcm*i)/gcd(nlcm, i);
+		ret+=compute(lt-1, (rem*10 + i)%2520, m2[nlcm]);
+	}
+	return dp[lt][rem][lcm] = ret;
+}
+
+ll solve(ll n)
+{
+	int len, i, d, j, nlcm, lcm;
+	ll ret = 0, cur = 0;
+	temp = to_string(n);
+	len = temp.size();
+	lcm = 1;
+	for(i=0; i<len; i++){
+		d = temp[i]-'0';
+		for(j=0; j<d; j++){
+			nlcm = lcm;
+			if(j>0)
+				nlcm = (lcm*j)/gcd(lcm, j);
+			ret+=compute(len-i-1, (cur*10 + j)%2520, m2[nlcm]);
+		}
+		cur = (cur*10 + d);
+		if(d>0)
+			lcm = (lcm*d)/gcd(lcm, d);
+	}
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int t;
+	memset(dp, -1, sizeof(dp));
+	precompute();
+	ll a, b;
+	scanf("%d", &t);
+	while(t--){
+		scanf("%lld%lld", &a, &b);
+		ll ans = solve(b+1) - solve(a);
+		printf("%lld\n", ans);
+	}
+	
+	return 0;
+}
