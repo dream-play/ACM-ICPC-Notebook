@@ -1,0 +1,205 @@
+//Problem Link: https://www.hackerrank.com/contests/indeed-prime-codesprint/challenges/flatland-roads
+//Algorithm: Forming Bridge tree and applying dp.
+
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <functional>
+#include <algorithm>
+#include <climits>
+#include <list>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+#include <stack>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+vector<int> adj[maxn], nadj[maxn];
+map<pair<int, int>, int> m1;
+int low[maxn], disc[maxn], vis[maxn], comp_ind[maxn], size_comp[maxn], par[maxn];
+int dp1[maxn][20], dp2[maxn][20];
+
+void find_bridges(int cur, int parent)
+{
+	static int timer = 0;
+	int i, u;
+	vis[cur] = 1;
+	low[cur] = disc[cur] = ++timer;
+	for(i=0; i<adj[cur].size(); i++){
+		u = adj[cur][i];
+		if(!vis[u]){
+			find_bridges(u, cur);
+			low[cur] = min(low[cur], low[u]);
+			if(low[u]>disc[cur]){
+				m1[mp(u, cur)] = 1;
+				//m1[mp(cur, u)] = 1;
+			}
+		}
+		if(u!=parent){
+			low[cur] = min(low[cur], low[u]);
+		}
+	}
+}
+
+void dfs3(int cur, int ind)
+{
+	int i, u, t, t1, t2;
+	comp_ind[cur] = ind;
+	vis[cur] = 1;
+	size_comp[ind]++;
+	for(i=0; i<adj[cur].size(); i++){
+		u = adj[cur][i];
+		if(!vis[u] && m1.find(mp(u, cur))==m1.end() && m1.find(mp(cur, u))==m1.end()){
+			vis[u] = 1;
+			dfs3(u, ind);
+		}
+	}
+}
+
+void dfs(int cur, int parent)
+{
+	par[cur] = parent;
+	int i, u;
+	for(i=0; i<nadj[cur].size(); i++){
+		u = nadj[cur][i];
+		if(u!=parent){
+			dfs(u, cur);
+		}
+	}
+}
+
+int dfs1(int cur, int p, int parent)
+{
+	if(p<0)
+		return 0;
+	if(p==0)
+		return dp1[cur][p] = size_comp[cur]-1;
+	if(dp1[cur][p]!=-1)
+		return dp1[cur][p];
+	int i, j, u, ret=0, f=0;
+	for(i=0; i<nadj[cur].size(); i++){
+		u = nadj[cur][i];
+		if(u!=parent){
+			ret+=(dfs1(u, p-1, cur));
+			if(p==1)
+				ret++;
+		}
+	}
+	return dp1[cur][p] = ret;
+//	if(f)
+//		dp1[cur][p]++;
+//	return ret;
+}
+
+int dfs2(int cur, int p)
+{
+	if(p<0)
+		return 0;
+	if(p==0)
+		return dp2[cur][p] = size_comp[cur]-1;
+	if(dp2[cur][p]!=-1)
+		return dp2[cur][p];
+	int i, u, ret=0;
+	if(par[cur]>0){
+		ret = dfs2(par[cur], p-1) + dp1[cur][p] + dp1[cur][p-1];
+		if(p==1)
+			ret++;
+	}
+	else
+		ret = dfs2(cur, p-1) + dp1[cur][p];
+	return dp2[cur][p] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int t, i, j, k, n, m, p, u, v, ans;
+	sd(n), sd(m), sd(p);
+	for(i=0; i<m; i++){
+		sd(u), sd(v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	find_bridges(1, 0);
+	memset(vis, 0, sizeof(vis));
+	int ind = 1, c=0;
+	for(i=1; i<=n; i++){
+		if(!vis[i]){
+			vis[i] = 1;
+			dfs3(i, ind++);
+		}
+	}
+	c = 0;
+	for(i=1; i<=n; i++){
+		u = comp_ind[i];
+		ind = max(u, ind);
+		for(j=0; j<adj[i].size(); j++){
+			v = comp_ind[adj[i][j]];
+			if(u!=v){
+				nadj[u].pb(v);
+				c++;
+			}
+		}
+	}
+	/*cout << "Graph\n";
+	for(i=1; i<=ind; i++){
+		cout << i << " " << "size: " << size_comp[i] << ": ";
+		for(j=0; j<nadj[i].size(); j++)
+			cout << nadj[i][j] << " ";
+		//size_comp[i] = nadj[i].size();
+		cout << "\n";
+		cout << "SIZE: " << size_comp[i] << "\n";
+	}*/
+	memset(vis, 0, sizeof(vis));
+	dfs(1, 0);
+	memset(dp1, -1, sizeof(dp1));
+	memset(dp2, -1, sizeof(dp2));
+	//cout << dfs1(1, 1, 0) << "\n";
+	for(i=0; i<=p; i++){
+		for(j=1; j<=ind; j++)
+			dfs1(j, i, par[j]);
+	}
+	/*for(i=0; i<=p; i++){
+		cout << i << ": ";
+		for(j=1; j<=ind; j++)
+			cout << dp1[j][i] << " ";
+		cout << "\n";
+	}*/
+	for(i=0; i<=p; i++){
+		for(j=1; j<=ind; j++)
+			dp2[j][i] = dfs2(j, i);
+	}
+	/*for(i=0; i<=p; i++){
+		cout << i << ": ";
+		for(j=1; j<=ind; j++)
+			cout << dp2[j][i] << " ";
+		cout << "\n";
+	}*/
+	for(i=1; i<=n; i++){
+		u = comp_ind[i];
+		printf("%d\n", dp2[u][p]);
+	}
+	return 0;
+}
