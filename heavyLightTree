@@ -1,0 +1,114 @@
+// Problem Link: http://codeforces.com/problemset/problem/246/E
+// Source: http://codeforces.com/blog/entry/44351
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int a = 137;
+
+vector<int> adj[maxn];
+vector<pii> q[maxn];
+char str[maxn];
+ll hval[maxn], pa[35];
+int n, m, siz[maxn], depth[maxn], ans[maxn], sc[maxn];
+map<ll, int> m1[2*maxn];
+
+void dfs(int cur, int p, int d)
+{
+	siz[cur] = 1;
+	depth[cur] = d;
+	for(int it:adj[cur]){
+		if(it!=p){
+			dfs(it, cur, d+1);
+			siz[cur]+=siz[it];
+		}
+	}
+}
+
+void add(int cur, int p, int x)
+{
+	if(x==1)
+		m1[depth[cur]][hval[cur]]++;
+	else{
+		m1[depth[cur]][hval[cur]]--;
+		if(!m1[depth[cur]][hval[cur]])
+			m1[depth[cur]].erase(hval[cur]);
+	}
+	for(int it:adj[cur]){
+		if(!sc[it] && it!=p)
+			add(it, cur, x);
+	}
+}
+
+void solve(int cur, int p, int keep)
+{
+	int mxsize = -1, special_child = -1;
+	for(int it:adj[cur]){
+		if(it!=p && siz[it]>mxsize){
+			mxsize = siz[it];
+			special_child = it;
+		}
+	}
+	for(int it:adj[cur]){
+		if(it!=p && it!=special_child)
+			solve(it, cur, 0);
+	}
+	if(special_child!=-1)
+		solve(special_child, cur, 1), sc[special_child] = 1;
+	add(cur, p, 1);
+	for(pii it:q[cur]){
+		int level = it.s + depth[cur];
+		ans[it.f] = (int)m1[level].size();
+	}
+	if(special_child!=-1)
+		sc[special_child] = 0;
+	if(!keep)
+		add(cur, p, -1);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i, j;
+	ll chash;
+	pa[0] = 1;
+	for(i=1; i<=30; i++)
+		pa[i] = (pa[i-1]*a)%mod;
+	scanf("%d", &n);
+	for(i=1; i<=n; i++){
+		scanf("%s%d", str+1, &u);
+		chash = 0;
+		v = strlen(str+1);
+		for(j=1; j<=v; j++)
+			chash = (chash + (pa[j]*(str[j]-'a'+1))%mod)%mod;
+		hval[i] = chash;
+		adj[u].pb(i);
+		adj[i].pb(u);	
+	}
+	scanf("%d", &m);
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &v, &u);
+		q[v].pb(mp(i, u));
+	}
+	dfs(0, -1, 0);
+	solve(0, -1, 0);
+	for(i=1; i<=m; i++)
+		printf("%d\n", ans[i]);
+	return 0;
+}
