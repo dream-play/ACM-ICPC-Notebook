@@ -1,0 +1,91 @@
+//Balanced Binary Search Tree-Merging and Order Statistics
+//Problem Link: http://www.codechef.com/problems/CHEFDTRE
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 1000000;
+
+struct node{
+	node *left;
+	node *right;
+	int cnt;
+	node(){
+		left = right = NULL;
+		cnt = 0;
+	}
+	node *insert(int l, int r, int val){
+		++cnt;
+		if(l<r){
+			int mid = (l+r)>>1;
+			if(val<=mid){
+				if(left==NULL)
+					left = new node();
+				left = left->insert(l, mid, val);
+			}
+			else{
+				if(right==NULL)
+					right = new node();
+				right = right->insert(mid+1, r, val);
+			}
+		}
+		return this;
+	}
+	int kthnum(int l, int r, int k){
+		if(l==r)
+			return l;
+		int mid = (l+r)>>1, lc;
+		if(left==NULL)
+			lc = 0;
+		else
+			lc = left->cnt;
+		if(lc>=k)
+			return left->kthnum(l, mid, k);
+		return right->kthnum(mid+1, r, (k-lc));
+	}
+	node *merge(node *other){
+		cnt+=other->cnt;
+		if(other->left!=NULL){
+			if(left==NULL)
+				left = other->left;
+			else
+				left = left->merge(other->left);
+		}
+		if(other->right!=NULL){
+			if(right==NULL)
+				right = other->right;
+			else
+				right = right->merge(other->right);
+		}
+		return this;
+	}
+};
+
+node *tree[maxn];
+char str[10];
+
+int main()
+{
+	freopen("input.txt", "r", stdin);
+	int n, i, j, m, q, a, b;
+	scanf("%d%d", &n, &q);
+	for(i=1; i<=n; i++){
+		tree[i] = new node();
+		tree[i] = tree[i]->insert(1, n, i);
+	}
+	m = n;
+	while(q--){
+		scanf("%s", str);
+		if(str[0]=='U'){
+			scanf("%d%d", &a, &b);
+			tree[++m] = tree[a];
+			tree[m] = tree[m]->merge(tree[b]);
+		}
+		else{
+			scanf("%d%d", &a, &b);
+			printf("%d\n", tree[a]->kthnum(1, n, b));
+		}
+	}
+	return 0;
+}
