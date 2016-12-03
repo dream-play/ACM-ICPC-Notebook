@@ -1,0 +1,88 @@
+//Problem Link: http://www.codechef.com/problems/KMHAMHA
+//HOPCROFT-KARP Algorithm for Maximum Bipartite Matching
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 200000, NIL = 0, INF = 1000000000;
+
+vector <int> graph[maxn];
+int n, m, x[maxn], y[maxn], match[maxn], dist[maxn], A[maxn];
+
+bool bfs() 
+{
+    int i, u, v, len;
+    queue<int> Q;
+    for(i=1; i<=m; i++){
+        if(match[i]==NIL){
+            dist[i] = 0;
+            Q.push(i);
+        }
+        else dist[i] = INF;
+    }
+    dist[NIL] = INF;
+    while(!Q.empty()) {
+        u = Q.front(); Q.pop();
+        if(u!=NIL) {
+            len = graph[u].size();
+            for(i=0; i<len; i++) {
+                v = graph[u][i];
+                if(dist[match[v]]==INF) {
+                    dist[match[v]] = dist[u] + 1;
+                    Q.push(match[v]);
+                }
+            }
+        }
+    }
+    return (dist[NIL]!=INF);
+}
+
+bool dfs(int u) 
+{
+    int i, v, len;
+    if(u!=NIL){
+        len = graph[u].size();
+        for(i=0; i<len; i++){
+            v = graph[u][i];
+            if(dist[match[v]]==dist[u]+1){
+                if(dfs(match[v])){
+                    match[v] = u;
+                    match[u] = v;
+                    return true;
+                }
+            }
+        }
+        dist[u] = INF;
+        return false;
+    }
+    return true;
+}
+
+int hopcroft_karp() {
+	int matching = 0;
+	for (int i = 0; i <= n + m; i++)
+		match[i] = dist[i] = NIL;
+    while (bfs()) {
+        for(int i = 1; i<= m; i++) {
+            if(match[i]==NIL && dfs(i))
+                matching++;
+        }
+    }
+    return matching;
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for (int i = 1; i <= n; i++) {
+        scanf("%d", &A[i]);
+        for (int j = 1; j <= min(A[i], m); j++) {
+            if (!(A[i] % j)) {
+                graph[j].push_back(m + i);
+            }
+        }
+    }
+    int ans = hopcroft_karp();
+    printf("%d\n", ans);
+	return 0;
+}
