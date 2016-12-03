@@ -1,0 +1,275 @@
+// http://codeforces.com/problemset/problem/715/C
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int inf = 50000000;
+const int maxn = 100010;
+const int logn = 17;
+
+const int max_size = 3e5 + 7;
+
+struct hashTable {
+  int hash[max_size];
+  int f[max_size];
+  int size, cc, used[max_size];
+
+  hashTable()  { size = 0, cc = 1; }
+  void clear() { size = 0, cc++; }
+
+  int position( int H ) const {
+    int i = H % max_size;
+    while (used[i] == cc && hash[i] != H)
+      if (++i == max_size)
+        i = 0;
+    return i;
+  }
+  bool count( int H ) const { return hash[position(H)] == H; }
+
+  int & operator [] ( int H ) {
+    int i = position(H);
+    if (used[i] != cc)
+      size++, hash[i] = H, used[i] = cc, f[i] = 0;
+    return f[i];
+  }
+} Map;
+
+int mul(int a, int b, int m) {
+	ll ret = a;
+	ret *= b;
+	ret %= m;
+	a = ret;
+	return a;
+}
+
+int modpow(int a, int b, int mod) {
+	int x = 1, y = a;
+	while (b) {
+		if (b & 1)
+			x = mul(x, y, mod);
+		y = mul(y, y, mod);
+		b /= 2;
+	}
+	return x;
+}
+
+vector<pii> adj[maxn];
+vector<int> centroidTree[maxn], subTree[maxn];
+int power[maxn], invPower[maxn], rem[logn][maxn], rootRem[maxn];
+int dp[logn][maxn];
+int n, m, cent, size, sub[maxn], depth[maxn], parent[maxn], done[maxn];
+
+void dfs(int u, int p, int d, int w, ll r) {
+	depth[u] = d;
+	rem[0][u] = w % m;
+	dp[0][u] = p;
+	rootRem[u] = r;
+	for (pii it : adj[u]) {
+		if (it.f != p) {
+			dfs(it.f, u, d + 1, it.s, (r * 10 + it.s)%m);
+		}
+	}
+}
+
+void preProcess() {
+	dfs(1, 0, 0, 0, 0);
+	for (int i = 1; i < logn; i++) {
+		for (int j = 1; j <= n; j++) {
+			dp[i][j] = dp[i-1][dp[i-1][j]];
+			int diff = depth[dp[i-1][j]] - depth[dp[i][j]];
+			rem[i][j] = (mul(rem[i-1][j], power[diff], m) + rem[i-1][dp[i-1][j]]) % m;
+		}
+	}
+}
+
+int lca(int u, int v) {
+	if (depth[u] > depth[v])
+		swap(u, v);
+	int diff = depth[v] - depth[u];
+	for (int i = 0; i < logn; i++) {
+		if (diff & (1<<i))
+			v = dp[i][v];
+	}
+	for (int i = logn - 1; i >= 0; i--) {
+		if (dp[i][u] != dp[i][v]) {
+			u = dp[i][u];
+			v = dp[i][v];
+		}
+	}
+	if (u == v)
+		return u;
+	return dp[0][u];
+}	
+
+int distance(int u, int v, int l = -1) {
+	if (l == -1)
+		l = lca(u, v);
+	return depth[u] + depth[v] - depth[l] * 2;
+}
+
+/* v must be some ancestor of u */
+ll remainder(int u, int v) {
+	ll ret = 0;
+	int diff = depth[u] - depth[v];
+	for (int i = 0; i < logn; i++) {
+		if (diff & (1<<i)) {
+			int d = depth[u] - depth[dp[i][u]];
+			ret = (mul(ret, power[d], m) + rem[i][u]) % m;
+			u = dp[i][u];
+		}
+	}
+	return ret;
+}
+
+/* u must be some ancestor of v */
+int reverseRemainder(int u, int v) {
+	int diff = depth[v] - depth[u];
+	int ret = ( rootRem[v] - mul(rootRem[u], power[diff], m) + m ) % m;
+	return ret;
+}
+
+pii findPairs(int u, int v) {
+	int l = lca(u, v);
+	int d = distance(u, v, l);
+	int r1 = remainder(u, l);
+	int r2 = reverseRemainder(l, v);
+	int t = distance(v, l, l);
+	int ret = (mul(r1, power[t], m) + r2) % m;
+	return mp(d, ret);
+}
+ 
+void updateSize(int u, int p) {
+	sub[u] = 1;
+	for (pii it : adj[u]) {
+		if (!done[it.f] && it.f != p) {
+			updateSize(it.f, u);
+			sub[u] += sub[it.f];
+		}
+	}
+}
+
+int findCentroid(int u, int p) {
+	for (pii it : adj[u]) {
+		if (!done[it.f] && it.f != p && sub[it.f] > (size / 2))
+			return findCentroid(it.f, u);
+	}
+	return u;
+}
+
+void decompose(int u, int p) {
+	updateSize(u, p);
+	size = sub[u];
+	int centroid = findCentroid(u, p);
+	if (p == -1) {
+		p = centroid;
+		cent = centroid;
+	}
+	done[centroid] = 1;
+	parent[centroid] = p;
+	if (p != centroid)
+		centroidTree[p].pb(centroid);
+	for (pii it : adj[centroid]) {
+		if (!done[it.f]) {
+			decompose(it.f, centroid);		
+		}
+	}
+}	
+
+ll solve(int u) {
+	ll ret = 0;
+	subTree[u].pb(u);
+	for (int it : centroidTree[u]) {
+		ret += solve(it);
+		for (int jt : subTree[it]) {
+			subTree[u].pb(jt);
+			pii temp = findPairs(jt, u);
+		}
+	}
+	Map.clear();
+	for (int it : centroidTree[u]) {
+		for (int jt : subTree[it]) {
+			pii temp = findPairs(jt, u);
+			Map[temp.s]++;
+		}
+	}
+	ret += Map[0];
+	Map[0]++;
+	for (int it : centroidTree[u]) {
+		for (int jt : subTree[it]) {
+			pii temp = findPairs(jt, u);
+			Map[temp.s]--;
+		}
+		for (int jt : subTree[it]) {
+			pii temp = findPairs(u, jt);
+			int req = mul(m - temp.s, invPower[temp.f], m);
+			ret += Map[req];
+		}
+		for (int jt : subTree[it]) {
+			pii temp = findPairs(jt, u);
+			Map[temp.s]++;
+		}
+	}
+	return ret;
+}
+
+int phi(int temp) {
+	int ret = temp;
+	for (int i = 2; i <= sqrt(temp); i++) {
+		if (temp % i == 0) {
+			ret /= i;
+			ret *= (i - 1);
+			while (temp % i == 0)
+				temp /= i;
+		}
+	}
+	if (temp > 1) {
+		ret /= temp;
+		ret *= (temp - 1);
+	}
+	return ret;
+}
+
+int main() {
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	power[0] = invPower[0] = 1;
+	scanf("%d%d", &n, &m);
+	if (m > 1) {
+		int p = phi(m);
+		for (int i = 1; i < maxn; i++) {
+			power[i] = mul(power[i-1], 10, m);
+			invPower[i] = modpow(power[i], p - 1, m);
+		}
+	}
+	for (int i = 1; i < n; i++) {
+		int u, v, c;
+		scanf("%d%d%d", &u, &v, &c);
+		++u, ++v;
+		adj[u].pb(mp(v, c));
+		adj[v].pb(mp(u, c));
+	}
+	if (m == 1) {
+		ll ans = n;
+		ans *= (ans - 1);
+		printf("%lld\n", ans);
+		return 0;
+	}
+	preProcess();
+	decompose(1, -1);
+	ll ans = solve(cent);
+	printf("%lld\n", ans);
+	return 0;
+}
