@@ -1,0 +1,118 @@
+//http://adilet.org/blog/25-09-14/index.php
+
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+const int MAXN = 505000;
+
+struct node {
+	int next[26];
+	int len;
+	int sufflink;
+	int num;
+	ll cnt[2], lazy[2];
+};
+
+int len;
+char s[2][MAXN];
+node tree[MAXN]; 
+int num; 			// node 1 - root with len -1, node 2 - root with len 0
+int suff; 			// max suffix palindrome
+long long ans;
+
+bool addLetter(int p, int pos) {
+	int cur = suff, curlen = 0;
+	int let = s[p][pos] - 'a';
+
+	while (true) {
+		curlen = tree[cur].len;
+		if (pos - 1 - curlen >= 0 && s[p][pos - 1 - curlen] == s[p][pos])    	
+			break;	
+		cur = tree[cur].sufflink;
+	}		
+	if (tree[cur].next[let]) {	
+		suff = tree[cur].next[let];
+		tree[suff].lazy[p]++;
+		return false;
+	}
+
+	num++;
+	suff = num;
+	tree[num].len = tree[cur].len + 2;
+	tree[cur].next[let] = num;
+	tree[num].cnt[p] = 1;
+	if (tree[num].len == 1) {
+		tree[num].sufflink = 2;
+		tree[num].num = 1;
+		return true;
+	}
+	cout << cur << " " << pos << "\n";
+	while (true) {
+		cur = tree[cur].sufflink;
+		curlen = tree[cur].len;
+		if (pos - 1 - curlen >= 0 && s[p][pos - 1 - curlen] == s[p][pos]) {
+			tree[num].sufflink = tree[cur].next[let];
+			tree[tree[num].sufflink].lazy[p]++;
+			break;
+		}    	
+	}           
+	cout << pos << " " << tree[num].sufflink << "\n";
+	tree[num].num = 1 + tree[tree[num].sufflink].num;
+	return true;
+}
+
+void initTree() {
+	num = 2; suff = 2;
+	tree[1].len = -1; tree[1].sufflink = 1;
+	tree[2].len = 0; tree[2].sufflink = 1;
+}
+
+void clearTree() {
+	for(int i=1; i<=num; i++){
+		for(int j=0; j<26; j++)
+			tree[i].next[j] = 0;
+		tree[i].sufflink = 0;
+		tree[i].len = 0;
+		tree[i].cnt[0] = tree[i].cnt[1] = 0;
+		tree[i].lazy[0] = tree[i].lazy[1] = 0;
+	}
+}
+
+int main() {
+	//assert(freopen("input.txt", "r", stdin));
+	//assert(freopen("output.txt", "w", stdout));
+	int t, cn = 1;
+	scanf("%d", &t);
+	while(t--){
+		scanf("%s%s", s[0], s[1]);
+		
+		len = strlen(s[0]);
+
+		initTree();
+
+		for (int i = 0; i < len; i++) {
+			addLetter(0, i);
+		}
+		suff = 2;
+		len = strlen(s[1]);
+		for (int i = 0; i < len; i++) {
+			addLetter(1, i);
+		}
+		ll ans = 0;
+		for(int i=num; i>2; i--){
+			tree[i].cnt[0] += tree[i].lazy[0];
+			tree[tree[i].sufflink].lazy[0] += tree[i].lazy[0];
+			tree[i].lazy[0] = 0;
+			tree[i].cnt[1] += tree[i].lazy[1];
+			tree[tree[i].sufflink].lazy[1] += tree[i].lazy[1];
+			tree[i].lazy[1] = 0;
+			ans += (tree[i].cnt[0] * tree[i].cnt[1]);
+		}
+		printf("Case #%d: %lld\n", cn++, ans);
+		clearTree();
+	}
+	return 0;
+}   
