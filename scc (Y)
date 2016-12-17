@@ -31,7 +31,7 @@ int main() {
 		if(!vis[i])
 			dfs(i);
 	while(!st.empty()) {
-		DFS(s.top(), s.top());
-		s.pop();
+		DFS(st.top(), st.top());
+		st.pop();
 	}
 }
