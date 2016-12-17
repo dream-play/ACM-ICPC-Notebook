@@ -17,7 +17,7 @@ void DFS(int node, int par) {
 		return;
 	p[node] = par;
 	for(auto newnode: rg[node])
-		DFS(newnode, node);
+		DFS(newnode, par);
 }
 int main() {
 	int n, m, a, b, i, j;
