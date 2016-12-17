@@ -1,0 +1,37 @@
+// given n vertices, m directed edges a->b, decompose g into sccs, if node a, b belong to same scc then p[a] == p[b]
+// algo: 1) dfs on all nodes, store dfs order in stack 2) DFS on reverse graph, in stack order,vertices visited in same DFS call form scc
+// code stores id of one of nodes from same scc, in p[node]
+stack<int> st;
+int vis[maxn], p[maxn];
+vector<int> g[maxn], rg[maxn];
+void dfs(int node) {
+	if(vis[node])
+		return;
+	vis[node] = 1;
+	for(auto newnode: g[node])
+		dfs(newnode);
+	st.push(node);
+}
+void DFS(int node, int par) {
+	if(p[node])
+		return;
+	p[node] = par;
+	for(auto newnode: rg[node])
+		DFS(newnode, node);
+}
+int main() {
+	int n, m, a, b, i, j;
+	cin >> n >> m;
+	for(i = 0; i < m; i++) {
+		cin >> a >> b;
+		g[a].pb(b);
+		rg[b].pb(a);
+	}
+	for(i = 1; i <= n; i++) 
+		if(!vis[i])
+			dfs(i);
+	while(!st.empty()) {
+		DFS(s.top(), s.top());
+		s.pop();
+	}
+}
