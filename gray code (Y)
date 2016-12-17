@@ -1,0 +1,13 @@
+// encoding of non-negative integers s.t. neighbouring numbers differ by exactly 1 bit
+// num to gray, num is number in binary
+// n-bit gray code is hamiltonian cycle for n dimensional cube
+int g (int n) {
+	return n ^ (n >> 1);
+}
+// gray to num
+int rev_g (int g) {
+	int n = 0;
+	for (; g; g>>=1)
+		n ^= g;
+	return n;
+}
