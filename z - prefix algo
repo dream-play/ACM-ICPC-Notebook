@@ -1,0 +1,16 @@
+// s = "abacaba" z[0]=0,z[1]=0,z[2]=1,z[3]=0,z[4]=3,z[5]=0,z[6]=1
+// maximum matching length in z[0..n-1] and z[i..n-1]
+int z[maxn];
+string s;
+void z_function () {
+	int n = (int) s.length();
+  z[0] = 0;
+	for (int i=1, L=0, r=0; i<n; ++i) {
+		if (i <= r)
+			z[i] = min (r-i+1, z[i-L]);
+		while (i+z[i] < n && s[z[i]] == s[i+z[i]])
+			++z[i];
+		if (i+z[i]-1 > r)
+			L = i,  r = i+z[i]-1;
+	}
+}
