@@ -1,0 +1,30 @@
+
+// returns center of the circle passing through 3 non-collinear points
+
+typedef pair<double, double> point;
+point center(point a, point b, point c) { // a, b, c are 3 collinear points
+	b.f -= a.f;
+	c.f -= a.f;
+	b.s -= a.s;
+	c.s -= a.s;
+	double B = b.f * b.f + b.s * b.s, C = c.f * c.f + c.s * c.s;
+	double D = b.f * c.s - b.s * c.f;
+	return {a.f + (c.s * B - b.s * C) / (2 * D), a.s +(b.f * C - c.f * B) / (2 * D) };
+}
+
+// to check if 3 points are collinear
+double eps = 1e-8;
+bool eq(double a, double b) {
+	return abs(a - b) < eps;
+}
+bool sameLine(point a, point b, point c) {
+	b.f -= a.f;
+	c.f -= a.f;
+	b.s -= a.s;
+	c.s -= a.s;
+	if(eq(b.f, 0))
+		return eq(c.f, 0);
+	if(eq(c.f, 0))
+		return false;
+	return eq(c.s / c.f, b.s / b.f);
+}
