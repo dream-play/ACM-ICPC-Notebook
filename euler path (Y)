@@ -1,0 +1,25 @@
+// conditions for existence: GRAPH SHOULD BE CONNECTED
+// directed: cycle iff all vertices have indegree = outdegree
+// directed: path iff all vertices except 2 have same in / out degree, one vertex(start / end) has 1 out / in degree more
+// undirected: cycle iff all vertices have even degree
+// undirected: path iff all vertices except 2 have even degree, odd degree vertices are start / end
+// following algorithms give required vertices in reverse order
+Algorithm for undirected graphs: O(n + m)
+1. Start with an empty stack and an empty circuit (eulerian path).
+  - If all vertices have even degree - choose any of them.
+  - If there are exactly 2 vertices having an odd degree - choose one of them.
+  - Otherwise no euler circuit or path exists.
+2.  If current vertex has no neighbors - add it to circuit, remove the last vertex from the stack and set it as the current one.
+    Otherwise (in case it has neighbors) - add the vertex to the stack, take any of its neighbors, remove the edge between 
+    selected neighbor and that vertex, and set that neighbor as the current vertex.
+3. Repeat step 2 until the current vertex has no more neighbors and the stack is empty.
+
+Algorithm for directed graphs: O(n + m)
+1.Start with an empty stack and an empty circuit (eulerian path).
+  - If all vertices have same out-degrees as in-degrees - choose any of them.
+  - If all but 2 vertices have same out-degree as in-degree, and one of those 2 vertices has out-degree with one greater than its in-degree, and the other has in-degree with one greater than its out-degree - then choose the vertex that has its out-degree with one greater than its in-degree.
+  - Otherwise no euler circuit or path exists.
+2. If current vertex has no out-going edges (i.e. neighbors) - add it to circuit, remove the last vertex from the stack and set it as the
+   current one. Otherwise (in case it has out-going edges, i.e. neighbors) - add the vertex to the stack, take any of its neighbors, remove
+   the edge between that vertex and selected neighbor, and set that neighbor as the current vertex.
+3. Repeat step 2 until the current vertex has no more out-going edges (neighbors) and the stack is empty.
