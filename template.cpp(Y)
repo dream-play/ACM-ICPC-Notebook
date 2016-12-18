@@ -31,7 +31,10 @@ void __f(const char* names, Arg1&& arg1, Args&&... args) {
 #define f first
 #define s second
 #define boost  ios_base::sync_with_stdio(false);
+#define FOR(i, a, b) for (int i = (a); i < (b); ++i)
+#define REP(i, n) FOR(i, 0, n)
 
+typedef long long llint;
 typedef long long ll ;
 typedef pair<int, int> pii;
 typedef vector<int> vi;
