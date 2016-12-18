@@ -11,8 +11,11 @@
 // - edge(x, y, c1, c2) adds edges x->y of capacity c1 and y->x of capacity c2
 // - run(src, sink) runs the algorithm and returns the total flow
 //
-// Time complexity: O(V^2 * E)
-//
+// Time complexity:
+// general networks: O(|V|^2 |E|)
+// unit capacity networks: O(E min(V^(2/3), E^(1/2)))
+// bipartite matching networks: O(E sqrt(V))
+
 // Constants to configure:
 // - MAXV is the maximum number of vertices
 // - MAXE is the maximum number of edges (i.e. twice the calls to function edge)
