@@ -1,0 +1,25 @@
+// inverse of number a modulo m is b, such that a * b = 1 (mod m), denoted as a ^ (-1)
+// exists iff a and m are coprime // algorithm to find inverse, if it exists.
+
+// method 1 - using euclid ex gcd
+// a * x + m * y = 1, this equation in modulo m, gives x as inverse
+int x, y;
+int g = gcdex (a, m, x, y);
+if (g != 1)
+	cout << "no solution";
+else {
+	x = (x % m + m) % m;
+	cout << x;
+}
+
+// method 2 - using powmod - following holds iff a and m are coprime
+// euler's theorem - a ^ phi(m) = 1 (mod m)
+// a ^ (-1) = a ^ (phi(m) - 1) (mod m) = a ^ (p - 2) (mod p), if p is prime
+// (a ^ (b ^ c)) % m = a ^ ((b ^ c) % phi(m)
+
+// O(n) - inverse for 1 to m - 1, modulo m, m - prime
+// m mod i = m - floor(m/ i) * i, take mod m both sides and take i to lhs
+// i > 1, r[i] = - floor(m/i) * r[m mod i] mod m
+r[1] = 1;
+for (int i=2; i<m; ++i)
+	r[i] = (m - (m/i) * r[m%i] % m) % m;
