@@ -1,0 +1,68 @@
+// Algorithm for finding Eulerian path/cycle in undirecteed graph (path that visits every edge exactly once). O(M).
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN = 1050;
+
+struct edge {
+	int to;
+	bool used;
+};
+
+int n, m;
+vector <edge> e;
+vector <int> g[MAXN];
+int pos[MAXN];
+edge tmp;
+bool used[MAXN];
+vector <int> ans;
+
+/*
+	Eulerian walk search. Criterias are neglected in this problem.
+	Eulerian cycle criteria - all vertices have even degree.
+	Eulerian path criteria - maximum 2 vertices have odd degree. Path is found 
+	from cycle: add extra edge, find cycle, remove edge.
+*/
+void dfs(int v) {
+	for (; pos[v] < (int) g[v].size(); pos[v]++) {
+		int ind = g[v][pos[v]];
+		int to = e[ind].to;
+		if (e[ind].used)
+			continue;
+		e[ind].used = true; e[ind ^ 1].used = true;
+		dfs(e[ind].to);
+	}	
+	ans.push_back(v);
+	used[v] = true;
+}
+
+int main() {
+	// error possible, changes were made in code
+	scanf("%d %d", &n, &m);
+	for (int i = 1; i <= m; i++) {
+		int from, to;
+		scanf("%d %d", &from, &to);
+		tmp.used = false;
+		tmp.to = to;
+		e.push_back(tmp);
+		g[from].push_back( (int) e.size() - 1 );
+
+		tmp.to = from;
+		e.push_back(tmp);
+		g[to].push_back( (int) e.size() - 1 );
+	}
+
+	dfs(1);
+
+	for (int i = 1; i <= n; i++) {
+		if (!used[i]) {
+			puts("No");
+			return 0;
+		}
+	}
+	puts("Yes");
+//		Ans contains all vertices in the right order for Eulerian walk.
+	reverse(ans.begin(), ans.end());
+	return 0;
+}
