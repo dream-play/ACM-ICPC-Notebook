@@ -1,3 +1,9 @@
+// theory: N = n1 * n2 * ...nk, ni are pairwise coprime
+// for each i, compute, yi = N / ni = n1 * n2 * ...ni-1 * ni+1 * ..
+// for each i, compute, zi = yi inverse mod ni - using exgcd
+// the solution is unique, x in mod N, x = Sigma ai * yi * zi
+
+// following code works even for non-coprimes
 typedef vector<int> VI;
 typedef pair<int,int> PII;
 
