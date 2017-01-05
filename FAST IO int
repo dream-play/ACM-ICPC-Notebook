@@ -1,0 +1,7 @@
+// inputs integer
+int Get()
+{
+  char c;while(c=getchar(),c<'0'||c>'9');
+  int X=c-48;while(c=getchar(),c>='0'&&c<='9')X=X*10+c-48;
+  return X;
+}
